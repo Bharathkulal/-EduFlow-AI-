@@ -22,7 +22,13 @@ import {
   Clock,
   LogOut,
   Settings,
-  CheckCircle
+  CheckCircle,
+  Search,
+  Trash2,
+  Download,
+  AlertTriangle,
+  Award,
+  BookMarked
 } from 'lucide-react';
 
 export default function TeacherHomeDashboard({ setView }) {
@@ -32,6 +38,10 @@ export default function TeacherHomeDashboard({ setView }) {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   
+  // Search & Filter States
+  const [materialsSearch, setMaterialsSearch] = useState('');
+  const [materialsFilter, setMaterialsFilter] = useState('All');
+  
   // Interactive Modal State
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -40,20 +50,55 @@ export default function TeacherHomeDashboard({ setView }) {
   const [selectedGrade, setSelectedGrade] = useState('I BCA A');
   const [isUploading, setIsUploading] = useState(false);
 
+  // Active AI Tool State for simulator
+  const [activeAiTool, setActiveAiTool] = useState(null);
+  const [toolSubject, setToolSubject] = useState('Mathematics');
+  const [toolClass, setToolClass] = useState('I BCA A');
+  const [toolChapter, setToolChapter] = useState('');
+  const [isGeneratingToolAsset, setIsGeneratingToolAsset] = useState(false);
+
   // Toast Notifications State
   const [toasts, setToasts] = useState([]);
 
-  // Mock Notification Data - CLEARED
-  const [notifications, setNotifications] = useState([]);
+  // Mock Notification Data
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "AI generated a new Worksheet for Physics", time: "5 mins ago", read: false },
+    { id: 2, text: "Evaluation complete for Chemistry assignment", time: "1 hour ago", read: false }
+  ]);
 
-  // Mock Materials Data - CLEARED (Populated dynamically on upload)
-  const [materials, setMaterials] = useState([]);
+  // Mock Materials Data (State-managed to allow deletion and uploads)
+  const [materials, setMaterials] = useState([
+    { id: 1, subject: 'Mathematics', chapter: 'Trigonometry', type: 'Question Paper', date: 'Created 2 hours ago', icon: FileText, color: 'text-blue-600 bg-blue-50', size: '240 KB' },
+    { id: 2, subject: 'Physics', chapter: 'Motion Mechanics', type: 'Lesson Plan', date: 'Created yesterday', icon: BookOpen, color: 'text-indigo-600 bg-indigo-50', size: '1.2 MB' },
+    { id: 3, subject: 'Chemistry', chapter: 'Acids & Bases', type: 'Quiz', date: 'Created 2 days ago', icon: HelpCircle, color: 'text-violet-600 bg-violet-50', size: '110 KB' },
+    { id: 4, subject: 'Biology', chapter: 'Cell Structures', type: 'Worksheet', date: 'Created 3 days ago', icon: ClipboardList, color: 'text-sky-600 bg-sky-50', size: '850 KB' }
+  ]);
 
-  // Upcoming Activities - CLEARED
-  const [upcomingActivities, setUpcomingActivities] = useState([]);
+  // Mock Classes Details
+  const bcaClasses = [
+    { className: 'I BCA A', students: 32, avgPerformance: 82, activeAssignments: 2, coverage: 45 },
+    { className: 'I BCA B', students: 30, avgPerformance: 76, activeAssignments: 1, coverage: 40 },
+    { className: 'I BCA C', students: 31, avgPerformance: 79, activeAssignments: 2, coverage: 42 },
+    { className: 'II BCA A', students: 28, avgPerformance: 84, activeAssignments: 3, coverage: 65 },
+    { className: 'II BCA B', students: 29, avgPerformance: 72, activeAssignments: 1, coverage: 60 },
+    { className: 'II BCA C', students: 28, avgPerformance: 75, activeAssignments: 2, coverage: 58 },
+    { className: 'III BCA A', students: 33, avgPerformance: 88, activeAssignments: 4, coverage: 85 },
+    { className: 'III BCA B', students: 31, avgPerformance: 81, activeAssignments: 2, coverage: 80 },
+    { className: 'III BCA C', students: 32, avgPerformance: 85, activeAssignments: 3, coverage: 82 }
+  ];
 
-  // Recent Sessions - CLEARED
-  const [recentSessions, setRecentSessions] = useState([]);
+  // Upcoming Activities
+  const upcomingActivities = [
+    { title: 'Mathematics – Chapter 5 Exam', date: 'Tomorrow, 09:00 AM', status: 'Question Paper Ready', type: 'quiz' },
+    { title: 'Physics – Motion Review', date: 'Thu, 11:30 AM', status: 'Lesson Plan Generated', type: 'lecture' },
+    { title: 'Chemistry – Grade Acids Assignment', date: 'Fri, 04:00 PM', status: 'Evaluation Pending', type: 'evaluation' }
+  ];
+
+  // Recent Sessions
+  const [recentSessions, setRecentSessions] = useState([
+    { name: 'Motion Mechanics Exam', type: 'Question Paper', details: 'Created yesterday', icon: FileText },
+    { name: 'Acids & Bases Worksheet', type: 'Worksheet', details: 'Edited 2 days ago', icon: ClipboardList }
+  ]);
 
   // Show Toast Function
   const showToast = (message, type = 'success') => {
@@ -108,12 +153,13 @@ export default function TeacherHomeDashboard({ setView }) {
         type: 'Lesson Plan',
         date: 'Created just now',
         icon: BookOpen,
-        color: 'text-blue-600 bg-blue-50'
+        color: 'text-blue-600 bg-blue-50',
+        size: '1.4 MB'
       };
       
       setMaterials((prev) => [newMaterial, ...prev]);
       
-      // Update stats and recent sessions dynamically
+      // Update recent sessions
       const newSession = {
         name: `${selectedSubject} – ${chapterName}`,
         type: 'Lesson Plan',
@@ -136,13 +182,82 @@ export default function TeacherHomeDashboard({ setView }) {
     }, 2000);
   };
 
+  const handleToolGenerateSubmit = (e) => {
+    e.preventDefault();
+    if (!toolChapter.trim()) {
+      showToast("Please enter a chapter topic", "error");
+      return;
+    }
+
+    setIsGeneratingToolAsset(true);
+    setTimeout(() => {
+      setIsGeneratingToolAsset(false);
+      
+      // Map icons based on active AI tool
+      let icon = BookOpen;
+      let color = 'text-blue-600 bg-blue-50';
+      if (activeAiTool === 'Question Paper') {
+        icon = FileText;
+        color = 'text-indigo-600 bg-indigo-50';
+      } else if (activeAiTool === 'Quiz') {
+        icon = HelpCircle;
+        color = 'text-violet-600 bg-violet-50';
+      } else if (activeAiTool === 'Worksheet') {
+        icon = ClipboardList;
+        color = 'text-sky-600 bg-sky-50';
+      } else if (activeAiTool === 'PPT') {
+        icon = Presentation;
+        color = 'text-teal-600 bg-teal-50';
+      } else if (activeAiTool === 'Evaluation') {
+        icon = CheckSquare;
+        color = 'text-emerald-600 bg-emerald-50';
+      }
+
+      const newMaterial = {
+        id: Date.now(),
+        subject: toolSubject,
+        chapter: toolChapter,
+        type: activeAiTool,
+        date: 'Created just now',
+        icon: icon,
+        color: color,
+        size: '340 KB'
+      };
+
+      setMaterials((prev) => [newMaterial, ...prev]);
+      
+      // Update recent sessions
+      setRecentSessions((prev) => [
+        { name: `${toolSubject} – ${toolChapter}`, type: activeAiTool, details: 'Created just now', icon: icon },
+        ...prev
+      ]);
+
+      showToast(`AI successfully generated ${activeAiTool} for "${toolChapter}"!`);
+      setActiveAiTool(null);
+      setToolChapter('');
+    }, 2500);
+  };
+
+  const deleteMaterial = (id, name) => {
+    setMaterials(materials.filter((m) => m.id !== id));
+    showToast(`Removed "${name}" from materials database.`);
+  };
+
   const markAllNotificationsRead = () => {
     setNotifications(notifications.map(n => ({ ...n, read: true })));
     showToast("All notifications marked as read");
   };
 
+  // Filtered Materials calculations
+  const filteredMaterials = materials.filter((m) => {
+    const matchesSearch = m.chapter.toLowerCase().includes(materialsSearch.toLowerCase()) || 
+                          m.subject.toLowerCase().includes(materialsSearch.toLowerCase());
+    const matchesFilter = materialsFilter === 'All' || m.type === materialsFilter;
+    return matchesSearch && matchesFilter;
+  });
+
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans relative pb-12">
+    <div className="min-h-screen bg-slate-50/50 text-slate-800 font-sans relative pb-12 text-left">
       {/* Toast Notification Container */}
       <div className="fixed top-6 right-6 z-50 flex flex-col gap-2 pointer-events-none">
         <AnimatePresence>
@@ -185,9 +300,10 @@ export default function TeacherHomeDashboard({ setView }) {
                       key={tab}
                       onClick={() => {
                         setActiveTab(tab);
-                        showToast(`Switched view to ${tab}`);
+                        setActiveAiTool(null);
+                        showToast(`Navigated to ${tab}`);
                       }}
-                      className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all duration-200 ${
+                      className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
                         isActive ? 'text-blue-600 bg-blue-50/50' : 'text-slate-500 hover:text-slate-800'
                       }`}
                     >
@@ -355,333 +471,746 @@ export default function TeacherHomeDashboard({ setView }) {
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
         
-        {/* Welcome Header */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 text-left relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-[30%] h-full bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.06),rgba(255,255,255,0))] -z-10" />
-          
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              Good Morning, Teacher 👋
-            </h1>
-            <p className="text-slate-500 text-sm font-medium">
-              Create, teach, evaluate and manage everything in one place.
-            </p>
-          </div>
+        {/* ==================== TAB 1: DASHBOARD VIEW ==================== */}
+        {activeTab === 'Dashboard' && (
+          <>
+            {/* Welcome Header */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 text-left relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-[30%] h-full bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.06),rgba(255,255,255,0))] -z-10" />
+              
+              <div className="space-y-1">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  Good Morning, Teacher 👋
+                </h1>
+                <p className="text-slate-500 text-sm font-medium">
+                  Create, teach, evaluate and manage everything in one place.
+                </p>
+              </div>
 
-          <div className="flex flex-row items-center gap-3">
-            <button
-              onClick={() => setUploadModalOpen(true)}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-150 flex items-center gap-2 cursor-pointer"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Upload Chapter</span>
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('AI Tools');
-                showToast("Navigated to AI tools gallery page");
-              }}
-              className="px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-xs transition-all duration-150 cursor-pointer"
-            >
-              Explore AI Tools
-            </button>
-          </div>
-        </div>
-
-        {/* Quick AI Actions Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-left">
-            <Sparkles className="w-4.5 h-4.5 text-blue-600 animate-pulse" />
-            <h2 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Quick AI Actions</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { title: 'Generate Lesson Plan', desc: 'AI creates a structured lesson plan from a chapter', icon: BookOpen, color: 'text-indigo-600 bg-indigo-50 border-indigo-100/50' },
-              { title: 'Generate Question Paper', desc: 'Create question papers based on subject, marks and difficulty', icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
-              { title: 'Create Quiz', desc: 'Generate MCQs and interactive classroom quizzes', icon: HelpCircle, color: 'text-violet-600 bg-violet-50 border-violet-100/50' },
-              { title: 'Create Worksheet', desc: 'Generate practice worksheets and assignments', icon: ClipboardList, color: 'text-sky-600 bg-sky-50 border-sky-100/50' },
-              { title: 'Create PPT', desc: 'Generate presentation slides from chapter content', icon: Presentation, color: 'text-teal-600 bg-teal-50 border-teal-100/50' },
-              { title: 'Grade Answers', desc: 'AI evaluates subjective student answer scripts', icon: CheckSquare, color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' }
-            ].map((action, idx) => {
-              const Icon = action.icon;
-              return (
-                <motion.div
-                  key={idx}
-                  whileHover={{ y: -3, scale: 1.01 }}
-                  onClick={() => showToast(`Starting generation workflow: "${action.title}"`)}
-                  className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs hover:shadow-md hover:border-blue-100 cursor-pointer text-left transition-all duration-200 flex items-start gap-4"
+              <div className="flex flex-row items-center gap-3">
+                <button
+                  onClick={() => setUploadModalOpen(true)}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all duration-150 flex items-center gap-2 cursor-pointer"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${action.color} border`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600">{action.title}</h3>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{action.desc}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Chapter</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('AI Tools');
+                    showToast("Navigated to AI tools gallery page");
+                  }}
+                  className="px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold rounded-xl shadow-xs transition-all duration-150 cursor-pointer"
+                >
+                  Explore AI Tools
+                </button>
+              </div>
+            </div>
 
-        {/* Overview Stats Section - CLEARED MOCK DATA */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Classes', value: '0', trend: 'No classes active', icon: Users, color: 'text-blue-600' },
-            { label: 'Total Students', value: '0', trend: 'No students enrolled', icon: Users, color: 'text-indigo-600' },
-            { label: 'Lessons Created', value: '0', trend: 'No generated materials', icon: BookOpen, color: 'text-violet-600' },
-            { label: 'Question Papers', value: '0', trend: 'No assessment sheets', icon: FileText, color: 'text-sky-600' }
-          ].map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs text-left relative overflow-hidden flex flex-col justify-between h-28">
-                <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</span>
-                  <Icon className={`w-4 h-4 ${stat.color}`} />
-                </div>
-                <div>
-                  <span className="text-2xl font-extrabold text-slate-900 block leading-none mb-1">{stat.value}</span>
-                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
-                    {stat.trend}
-                  </span>
+            {/* Quick AI Actions Grid */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-left">
+                <Sparkles className="w-4.5 h-4.5 text-blue-600 animate-pulse" />
+                <h2 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Quick AI Actions</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { title: 'Lesson Plan', desc: 'AI creates a structured lesson plan from a chapter', icon: BookOpen, color: 'text-indigo-600 bg-indigo-50 border-indigo-100/50' },
+                  { title: 'Question Paper', desc: 'Create question papers based on subject, marks and difficulty', icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
+                  { title: 'Quiz', desc: 'Generate MCQs and interactive classroom quizzes', icon: HelpCircle, color: 'text-violet-600 bg-violet-50 border-violet-100/50' },
+                  { title: 'Worksheet', desc: 'Generate practice worksheets and assignments', icon: ClipboardList, color: 'text-sky-600 bg-sky-50 border-sky-100/50' },
+                  { title: 'PPT', desc: 'Generate presentation slides from chapter content', icon: Presentation, color: 'text-teal-600 bg-teal-50 border-teal-100/50' },
+                  { title: 'Evaluation', desc: 'AI evaluates subjective student answer scripts', icon: CheckSquare, color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' }
+                ].map((action, idx) => {
+                  const Icon = action.icon;
+                  return (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ y: -3, scale: 1.01 }}
+                      onClick={() => {
+                        setActiveTab('AI Tools');
+                        setActiveAiTool(action.title);
+                        showToast(`Selected AI Tool: ${action.title}`);
+                      }}
+                      className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs hover:shadow-md hover:border-blue-100 cursor-pointer text-left transition-all duration-200 flex items-start gap-4"
+                    >
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${action.color} border`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600">Generate {action.title}</h3>
+                        <p className="text-xs text-slate-500 font-medium leading-relaxed">{action.desc}</p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Overview Stats Section */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Classes', value: '09', trend: 'Active BCA courses', icon: Users, color: 'text-blue-600' },
+                { label: 'Total Students', value: '274', trend: 'Registered students', icon: Users, color: 'text-indigo-600' },
+                { label: 'Lessons Created', value: materials.filter(m => m.type === 'Lesson Plan').length, trend: 'Generated syllabus', icon: BookOpen, color: 'text-violet-600' },
+                { label: 'Question Papers', value: materials.filter(m => m.type === 'Question Paper').length, trend: 'Assessment sheets', icon: FileText, color: 'text-sky-600' }
+              ].map((stat, idx) => {
+                const Icon = stat.icon;
+                return (
+                  <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs text-left relative overflow-hidden flex flex-col justify-between h-28">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                      <Icon className={`w-4 h-4 ${stat.color}`} />
+                    </div>
+                    <div>
+                      <span className="text-2xl font-extrabold text-slate-900 block leading-none mb-1">{stat.value}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                        {stat.trend}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Split Grid: Recent Materials & Performance Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left panel: Recent Materials (7 columns) */}
+              <div className="lg:col-span-7 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+                    <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Recent Materials</h3>
+                    {materials.length > 0 && (
+                      <button
+                        onClick={() => setActiveTab('Materials')}
+                        className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-bold cursor-pointer"
+                      >
+                        View All
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="divide-y divide-slate-50">
+                    {materials.length === 0 ? (
+                      <div className="py-12 text-center text-slate-400 text-xs font-medium space-y-1">
+                        <p>No materials generated yet.</p>
+                        <p className="text-[10px] text-slate-400 font-normal">Upload a chapter resource to let AI generate study plans.</p>
+                      </div>
+                    ) : (
+                      materials.slice(0, 4).map((m) => {
+                        const Icon = m.icon;
+                        return (
+                          <div key={m.id} className="py-3 flex items-center justify-between group hover:bg-slate-50/50 rounded-xl px-2 transition-colors duration-150">
+                            <div className="flex items-center space-x-3.5">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.color}`}>
+                                <Icon className="w-4.5 h-4.5" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold text-slate-900">{m.subject} – {m.chapter}</span>
+                                  <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md">
+                                    {m.type}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">{m.date}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => showToast(`Opening preview for ${m.chapter} (${m.type})`)}
+                                className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer"
+                              >
+                                Open
+                              </button>
+                              <button
+                                onClick={() => deleteMaterial(m.id, m.chapter)}
+                                className="p-1 hover:bg-rose-50 rounded-md text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Split Grid: Recent Materials & Performance Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left panel: Recent Materials (7 columns) */}
-          <div className="lg:col-span-7 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-50 pb-3">
-                <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Recent Materials</h3>
-                {materials.length > 0 && (
+              {/* Right panel: Student Performance Chart (5 columns) */}
+              <div className="lg:col-span-5 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
+                <div className="space-y-4">
+                  <div className="border-b border-slate-50 pb-3">
+                    <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Student Performance</h3>
+                  </div>
+
+                  {/* Progress bars showing real data */}
+                  <div className="space-y-3.5">
+                    {[
+                      { className: 'I BCA A', score: 82, color: 'bg-blue-600' },
+                      { className: 'I BCA B', score: 76, color: 'bg-indigo-600' },
+                      { className: 'I BCA C', score: 79, color: 'bg-violet-600' },
+                      { className: 'II BCA A', score: 84, color: 'bg-sky-600' }
+                    ].map((c, idx) => (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-slate-700">
+                          <span>{c.className}</span>
+                          <span className="font-bold text-slate-900">{c.score}%</span>
+                        </div>
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${c.score}%` }}
+                            transition={{ duration: 0.8, delay: idx * 0.1 }}
+                            className={`h-full rounded-full ${c.color}`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Performance Statistics footer grid */}
+                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                    <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
+                      <span className="text-[10px] text-slate-400 font-semibold block uppercase">Avg Score</span>
+                      <span className="font-bold text-slate-900 text-sm">80.2%</span>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
+                      <span className="text-[10px] text-slate-400 font-semibold block uppercase">Assignments</span>
+                      <span className="font-bold text-slate-900 text-sm">94.8% Complete</span>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
+                      <span className="text-[10px] text-slate-400 font-semibold block uppercase">Quiz Performance</span>
+                      <span className="font-bold text-slate-900 text-sm">78.5% Avg</span>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
+                      <span className="text-[10px] text-slate-400 font-semibold block uppercase">Needs Attention</span>
+                      <span className="font-bold text-slate-900 text-sm">4 Students</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Secondary Grid: Upcoming activities & AI Insight Card */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Side: Upcoming Activities (6 columns) */}
+              <div className="lg:col-span-6 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
+                <div className="space-y-4">
+                  <div className="border-b border-slate-50 pb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Upcoming Activities</h3>
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                  </div>
+
+                  <div className="space-y-3">
+                    {upcomingActivities.map((act, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-bold text-slate-900">{act.title}</h4>
+                          <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-medium">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{act.date}</span>
+                          </div>
+                        </div>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                          act.status.includes('Pending') ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'
+                        }`}>
+                          {act.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: AI Insight Card (6 columns) */}
+              <div className="lg:col-span-6 bg-blue-600 text-white rounded-2xl p-6 shadow-md flex flex-col justify-between text-left relative overflow-hidden">
+                {/* Background design elements */}
+                <div className="absolute top-[-10%] right-[-10%] w-[120px] h-[120px] rounded-full bg-white/10 blur-xl" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[120px] h-[120px] rounded-full bg-indigo-500/30 blur-2xl" />
+
+                <div className="space-y-4 relative z-10">
+                  <div className="flex items-center space-x-2 border-b border-white/10 pb-3">
+                    <span className="text-lg">💡</span>
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-white/90">AI Teaching Insight</h3>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-bold text-white leading-relaxed">
+                      Students in Class I BCA B are struggling with Trigonometry.
+                    </p>
+                    <p className="text-xs text-blue-100 font-medium leading-relaxed">
+                      Analyzing past quiz submissions showed that 64% of cohort errors occurred on trigonometry identities. Consider creating an additional practice worksheet or lesson review.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-6 relative z-10">
                   <button
                     onClick={() => {
-                      setActiveTab('Materials');
-                      showToast("Switched to Materials manager view");
+                      setActiveTab('AI Tools');
+                      setActiveAiTool('Worksheet');
+                      setToolChapter('Trigonometric Identities Practice');
+                      showToast("Generating worksheet parameters...");
                     }}
-                    className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-bold cursor-pointer"
+                    className="px-4 py-2 bg-white text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-50 transition-colors shadow-sm cursor-pointer"
                   >
-                    View All
+                    Generate Worksheet
                   </button>
-                )}
+                  <button
+                    onClick={() => setActiveTab('Analytics')}
+                    className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-lg transition-colors border border-blue-500/50 cursor-pointer"
+                  >
+                    View Analytics
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Productivity Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-left">
+                <h2 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Continue where you left off</h2>
               </div>
 
-              <div className="divide-y divide-slate-50">
-                {materials.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 text-xs font-medium space-y-1">
-                    <p>No materials generated yet.</p>
-                    <p className="text-[10px] text-slate-400 font-normal">Upload a chapter resource to let AI generate study plans.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {recentSessions.length === 0 ? (
+                  <div className="col-span-full bg-white border border-slate-100 p-8 rounded-xl text-center text-slate-400 text-xs font-medium">
+                    No recent sessions found. Upload a chapter to get started!
                   </div>
                 ) : (
-                  materials.map((m) => {
-                    const Icon = m.icon;
+                  recentSessions.map((item, idx) => {
+                    const Icon = item.icon;
                     return (
-                      <div key={m.id} className="py-3 flex items-center justify-between group hover:bg-slate-50/50 rounded-xl px-2 transition-colors duration-150">
-                        <div className="flex items-center space-x-3.5">
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.color}`}>
-                            <Icon className="w-4.5 h-4.5" />
+                      <div
+                        key={idx}
+                        onClick={() => showToast(`Resuming session: "${item.name}"`)}
+                        className="bg-white border border-slate-100 hover:border-blue-100 hover:shadow-xs p-4 rounded-xl cursor-pointer text-left transition-all duration-150"
+                      >
+                        <div className="flex items-center space-x-2 mb-2">
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <Icon className="w-4 h-4" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-900">{m.subject} – {m.chapter}</span>
-                              <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md">
-                                {m.type}
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-slate-400 block mt-0.5">{m.date}</span>
-                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.type}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => showToast(`Opening preview for ${m.chapter} (${m.type})`)}
-                            className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer"
-                          >
-                            Open
-                          </button>
-                          <button
-                            onClick={() => showToast(`Edit options opened for ${m.chapter}`)}
-                            className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-600 cursor-pointer"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <h4 className="text-xs font-bold text-slate-800 block truncate">{item.name}</h4>
+                        <span className="text-[9px] text-slate-400 block mt-1 font-semibold">{item.details}</span>
                       </div>
                     );
                   })
                 )}
               </div>
             </div>
-          </div>
+          </>
+        )}
 
-          {/* Right panel: Student Performance Chart (5 columns) - INITIALIZED TO 0 */}
-          <div className="lg:col-span-5 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
-            <div className="space-y-4">
-              <div className="border-b border-slate-50 pb-3">
-                <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Student Performance</h3>
-              </div>
+        {/* ==================== TAB 2: MY CLASSES VIEW ==================== */}
+        {activeTab === 'My Classes' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Active Classrooms</h2>
+              <p className="text-xs text-slate-500 mt-1">Manage student metrics, active curriculum assignments, and syllabus coverages.</p>
+            </div>
 
-              {/* Progress bars set to 0% as initial state */}
-              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                {[
-                  { className: 'I BCA A', score: 0, color: 'bg-blue-600' },
-                  { className: 'I BCA B', score: 0, color: 'bg-indigo-600' },
-                  { className: 'I BCA C', score: 0, color: 'bg-violet-600' },
-                  { className: 'II BCA A', score: 0, color: 'bg-sky-600' },
-                  { className: 'II BCA B', score: 0, color: 'bg-emerald-600' },
-                  { className: 'II BCA C', score: 0, color: 'bg-teal-600' },
-                  { className: 'III BCA A', score: 0, color: 'bg-cyan-600' },
-                  { className: 'III BCA B', score: 0, color: 'bg-purple-600' },
-                  { className: 'III BCA C', score: 0, color: 'bg-pink-600' }
-                ].map((c, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-xs font-semibold text-slate-400">
-                      <span>{c.className}</span>
-                      <span className="font-bold text-slate-400">{c.score}%</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bcaClasses.map((cls, idx) => (
+                <div key={idx} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs space-y-4 hover:shadow-md hover:border-blue-100 transition-all duration-200">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-slate-900">{cls.className}</h3>
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                      {cls.students} Students
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Coverage slider */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+                        <span>Syllabus Coverage</span>
+                        <span className="text-slate-800 font-bold">{cls.coverage}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div className="bg-blue-600 h-full rounded-full" style={{ width: `${cls.coverage}%` }} />
+                      </div>
                     </div>
-                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${c.score}%` }}
-                        transition={{ duration: 0.8, delay: idx * 0.05 }}
-                        className={`h-full rounded-full ${c.color}`}
-                      />
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
+                      <div className="bg-slate-50 p-2 rounded-xl">
+                        <span className="text-[9px] text-slate-400 uppercase block font-semibold">Average Grade</span>
+                        <span className="font-bold text-slate-800">{cls.avgPerformance}%</span>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded-xl">
+                        <span className="text-[9px] text-slate-400 uppercase block font-semibold">Active Tasks</span>
+                        <span className="font-bold text-slate-800">{cls.activeAssignments} Deployment</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Performance Statistics footer grid */}
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
-                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Avg Score</span>
-                  <span className="font-bold text-slate-400 text-sm">-</span>
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => showToast(`Opening class list for ${cls.className}...`)}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      View Students
+                    </button>
+                    <button
+                      onClick={() => showToast(`Assignments manager for ${cls.className} opened.`)}
+                      className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                      Manage Tasks
+                    </button>
+                  </div>
                 </div>
-                <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
-                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Assignments</span>
-                  <span className="font-bold text-slate-400 text-sm">0% Complete</span>
-                </div>
-                <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
-                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Quiz Performance</span>
-                  <span className="font-bold text-slate-400 text-sm">-</span>
-                </div>
-                <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
-                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Needs Attention</span>
-                  <span className="font-bold text-slate-400 text-sm">0 Students</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Secondary Grid: Upcoming activities & AI Insight Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Side: Upcoming Activities (6 columns) - CLEARED */}
-          <div className="lg:col-span-6 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
-            <div className="space-y-4">
-              <div className="border-b border-slate-50 pb-3 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Upcoming Activities</h3>
-                <Calendar className="w-4 h-4 text-slate-400" />
-              </div>
+        {/* ==================== TAB 3: AI TOOLS VIEW ==================== */}
+        {activeTab === 'AI Tools' && (
+          <div className="space-y-6">
+            {!activeAiTool ? (
+              <>
+                <div>
+                  <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">AI Curriculum Suite</h2>
+                  <p className="text-xs text-slate-500 mt-1">Select an automated generator tool below to build academic materials in seconds.</p>
+                </div>
 
-              <div className="space-y-3">
-                {upcomingActivities.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400 text-xs font-medium">
-                    No upcoming activities scheduled.
-                  </div>
-                ) : (
-                  upcomingActivities.map((act, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-bold text-slate-900">{act.title}</h4>
-                        <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-medium">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>{act.date}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[
+                    { title: 'Lesson Plan', desc: 'Creates comprehensive lesson objectives, lecture plans, timelines, and study milestones compliant with standard curriculum grids.', icon: BookOpen, color: 'text-indigo-600 bg-indigo-50 border-indigo-100/50' },
+                    { title: 'Question Paper', desc: 'Configures comprehensive exams based on custom subject syllabi, marks requirements, question distribution, and complexity levels.', icon: FileText, color: 'text-blue-600 bg-blue-50 border-blue-100/50' },
+                    { title: 'Quiz', desc: 'Builds interactive MCQ sheets, objective questions, class polls, and game-style quiz resources.', icon: HelpCircle, color: 'text-violet-600 bg-violet-50 border-violet-100/50' },
+                    { title: 'Worksheet', desc: 'Creates practice templates, math challenges, spelling worksheets, homework briefs, and topic recap guides.', icon: ClipboardList, color: 'text-sky-600 bg-sky-50 border-sky-100/50' },
+                    { title: 'PPT', desc: 'Autogenerates structured slides outlines, text points, diagram descriptions, and slide presentation summaries.', icon: Presentation, color: 'text-teal-600 bg-teal-50 border-teal-100/50' },
+                    { title: 'Evaluation', desc: 'Analyzes student subjective exam answers, checks grammatical details, compares with model answers, and provides scoring.', icon: CheckSquare, color: 'text-emerald-600 bg-emerald-50 border-emerald-100/50' }
+                  ].map((tool, idx) => {
+                    const Icon = tool.icon;
+                    return (
+                      <div
+                        key={idx}
+                        className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs hover:shadow-md hover:border-blue-100 transition-all duration-200 flex flex-col justify-between items-start gap-4"
+                      >
+                        <div className="space-y-3">
+                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${tool.color} border`}>
+                            <Icon className="w-5.5 h-5.5" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-slate-900">AI {tool.title} Generator</h3>
+                            <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1.5">{tool.desc}</p>
+                          </div>
                         </div>
+
+                        <button
+                          onClick={() => {
+                            setActiveAiTool(tool.title);
+                            showToast(`Launched ${tool.title} generator form.`);
+                          }}
+                          className="w-full mt-2 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <span>Open Tool</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                        act.status.includes('Pending') ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'
-                      }`}>
-                        {act.status}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side: AI Insight Card (6 columns) */}
-          <div className="lg:col-span-6 bg-blue-600 text-white rounded-2xl p-6 shadow-md flex flex-col justify-between text-left relative overflow-hidden">
-            {/* Background design elements */}
-            <div className="absolute top-[-10%] right-[-10%] w-[120px] h-[120px] rounded-full bg-white/10 blur-xl" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[120px] h-[120px] rounded-full bg-indigo-500/30 blur-2xl" />
-
-            <div className="space-y-4 relative z-10">
-              <div className="flex items-center space-x-2 border-b border-white/10 pb-3">
-                <span className="text-lg">💡</span>
-                <h3 className="text-sm font-bold uppercase tracking-widest text-white/90">AI Teaching Insight</h3>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-bold text-white leading-relaxed">
-                  No active classroom metrics found.
-                </p>
-                <p className="text-xs text-blue-100 font-medium leading-relaxed">
-                  Upload a chapter or lesson file to evaluate student knowledge gaps and view personalized AI recommendations.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 pt-6 relative z-10">
-              <button
-                onClick={() => setUploadModalOpen(true)}
-                className="px-4 py-2 bg-white text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-50 transition-colors shadow-sm cursor-pointer"
-              >
-                Upload Resource
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Productivity Section - CLEARED */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-left">
-            <h2 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Continue where you left off</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {recentSessions.length === 0 ? (
-              <div className="col-span-full bg-white border border-slate-100 p-8 rounded-xl text-center text-slate-400 text-xs font-medium">
-                No recent sessions found. Upload a chapter to get started!
-              </div>
+                    );
+                  })}
+                </div>
+              </>
             ) : (
-              recentSessions.map((item, idx) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => showToast(`Resuming session: "${item.name}"`)}
-                    className="bg-white border border-slate-100 hover:border-blue-100 hover:shadow-xs p-4 rounded-xl cursor-pointer text-left transition-all duration-150"
-                  >
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.type}</span>
+              /* Active Tool Creation Simulator */
+              <div className="max-w-2xl mx-auto bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-lg">⚙️</span>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">AI {activeAiTool} Generator</h3>
+                      <p className="text-[10px] text-slate-400 font-medium">Configure parameters and hit generate</p>
                     </div>
-                    <h4 className="text-xs font-bold text-slate-800 block truncate">{item.name}</h4>
-                    <span className="text-[9px] text-slate-400 block mt-1 font-semibold">{item.details}</span>
                   </div>
-                );
-              })
+                  <button
+                    onClick={() => setActiveAiTool(null)}
+                    className="text-xs text-slate-500 hover:text-slate-900 border border-slate-200 px-2.5 py-1 rounded-lg hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    Back to Suite
+                  </button>
+                </div>
+
+                <form onSubmit={handleToolGenerateSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700">Subject Area</label>
+                      <select
+                        value={toolSubject}
+                        onChange={(e) => setToolSubject(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      >
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>Chemistry</option>
+                        <option>Biology</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-slate-700">Target Class</label>
+                      <select
+                        value={toolClass}
+                        onChange={(e) => setToolClass(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                      >
+                        <option>I BCA A</option>
+                        <option>I BCA B</option>
+                        <option>I BCA C</option>
+                        <option>II BCA A</option>
+                        <option>II BCA B</option>
+                        <option>II BCA C</option>
+                        <option>III BCA A</option>
+                        <option>III BCA B</option>
+                        <option>III BCA C</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700">Chapter/Topic Name</label>
+                    <input
+                      type="text"
+                      value={toolChapter}
+                      onChange={(e) => setToolChapter(e.target.value)}
+                      placeholder="e.g. Database Normalization Closures"
+                      className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setActiveAiTool(null)}
+                      className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isGeneratingToolAsset || !toolChapter.trim()}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                    >
+                      {isGeneratingToolAsset ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span>Generating Asset...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Generate Asset</span>
+                          <Sparkles className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             )}
           </div>
-        </div>
+        )}
+
+        {/* ==================== TAB 4: MATERIALS VIEW ==================== */}
+        {activeTab === 'Materials' && (
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Generated Materials</h2>
+                <p className="text-xs text-slate-500 mt-1">Search, organize, and download generated curriculum assets.</p>
+              </div>
+              <button
+                onClick={() => setUploadModalOpen(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" /> Upload Chapter
+              </button>
+            </div>
+
+            {/* Filter Toolbar */}
+            <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs flex flex-col md:flex-row md:items-center gap-3">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search by topic or subject..."
+                  value={materialsSearch}
+                  onChange={(e) => setMaterialsSearch(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-4 text-xs text-slate-950 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                />
+              </div>
+
+              <div className="flex gap-2 items-center flex-wrap">
+                {['All', 'Lesson Plan', 'Question Paper', 'Quiz', 'Worksheet'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setMaterialsFilter(type)}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      materialsFilter === type
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Materials File Manager Grid */}
+            {filteredMaterials.length === 0 ? (
+              <div className="bg-white border border-slate-100 p-12 rounded-2xl text-center text-slate-400 text-xs font-medium">
+                No materials found matching your filters.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredMaterials.map((m) => {
+                  const Icon = m.icon;
+                  return (
+                    <div key={m.id} className="bg-white border border-slate-100 rounded-2xl p-5 hover:border-blue-100 hover:shadow-xs transition-all duration-150 flex flex-col justify-between items-start gap-4">
+                      <div className="w-full space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.color}`}>
+                            <Icon className="w-4.5 h-4.5" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400">{m.size}</span>
+                        </div>
+
+                        <div className="text-left space-y-1">
+                          <h4 className="text-sm font-bold text-slate-900 block truncate">{m.subject} – {m.chapter}</h4>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md">
+                              {m.type}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-semibold">{m.date}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full flex items-center gap-2 pt-2 border-t border-slate-50">
+                        <button
+                          onClick={() => showToast(`Opening preview for ${m.chapter}...`)}
+                          className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" /> Preview
+                        </button>
+                        <button
+                          onClick={() => showToast(`Starting download for ${m.chapter}...`)}
+                          className="p-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => deleteMaterial(m.id, m.chapter)}
+                          className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-100 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ==================== TAB 5: ANALYTICS VIEW ==================== */}
+        {activeTab === 'Analytics' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Performance Analytics</h2>
+              <p className="text-xs text-slate-500 mt-1">Cross-classroom progress reports, grading analytics, and curriculum coverage.</p>
+            </div>
+
+            {/* Top overview statistics line */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs text-left">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Average Quiz Score</span>
+                <span className="text-3xl font-extrabold text-slate-950 block mt-1.5">78.5%</span>
+                <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3.5 h-3.5" /> +2.4% this week
+                </span>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs text-left">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Syllabus Completion</span>
+                <span className="text-3xl font-extrabold text-slate-950 block mt-1.5">58.5%</span>
+                <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mt-1">
+                  Average across all BCA sections
+                </span>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs text-left">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Evaluations Completed</span>
+                <span className="text-3xl font-extrabold text-slate-950 block mt-1.5">142</span>
+                <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-3.5 h-3.5" /> +14 graded today
+                </span>
+              </div>
+            </div>
+
+            {/* Split layout: analytics insights & needy student alerts */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Side: Topic breakdown averages (7 columns) */}
+              <div className="lg:col-span-7 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs text-left">
+                <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest border-b border-slate-50 pb-3 mb-4">Topic Retention Breakdown</h3>
+                
+                <div className="space-y-4">
+                  {[
+                    { topic: 'Trigonometric Identities', average: 54, status: 'Critically Low', color: 'bg-rose-500 text-rose-700 bg-rose-50 border-rose-100' },
+                    { topic: 'Database Schema Normalization', average: 74, status: 'Satisfactory', color: 'bg-amber-500 text-amber-700 bg-amber-50 border-amber-100' },
+                    { topic: 'Atomic Structure Basics', average: 88, status: 'High Retention', color: 'bg-emerald-500 text-emerald-700 bg-emerald-50 border-emerald-100' },
+                    { topic: 'Newtonian Motion Formulas', average: 82, status: 'Stable', color: 'bg-blue-600 text-blue-700 bg-blue-50 border-blue-100' }
+                  ].map((t, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs">
+                      <div className="space-y-1 flex-grow pr-4">
+                        <span className="font-semibold text-slate-700">{t.topic}</span>
+                        <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${t.color.split(' ')[0]}`} style={{ width: `${t.average}%` }} />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3 flex-shrink-0">
+                        <span className={`text-[9px] font-bold border px-1.5 py-0.5 rounded-full ${t.color.split(' ').slice(1).join(' ')}`}>
+                          {t.status}
+                        </span>
+                        <span className="font-bold text-slate-900">{t.average}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Side: Needy Students List (5 columns) */}
+              <div className="lg:col-span-5 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs text-left">
+                <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest border-b border-slate-50 pb-3 mb-4">Students Needing Attention</h3>
+                
+                <div className="space-y-3.5">
+                  {[
+                    { name: 'Aditya Sharma', class: 'I BCA B', score: '48% Avg', weakTopic: 'Trig Identities' },
+                    { name: 'Deepika Sen', class: 'II BCA B', score: '52% Avg', weakTopic: '3NF Normalization' },
+                    { name: 'Kunal Verma', class: 'I BCA B', score: '55% Avg', weakTopic: 'Trig Identities' },
+                    { name: 'Sneha Roy', class: 'I BCA C', score: '58% Avg', weakTopic: 'Schema Closures' }
+                  ].map((std, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs p-2 bg-slate-50/50 hover:bg-slate-50 rounded-xl transition-all duration-150">
+                      <div>
+                        <span className="font-bold text-slate-800 block">{std.name}</span>
+                        <span className="text-[10px] text-slate-400 font-semibold">{std.class} | Weak topic: {std.weakTopic}</span>
+                      </div>
+                      <span className="font-bold text-rose-600 text-xs bg-rose-50 border border-rose-100/50 px-2 py-0.5 rounded-lg">
+                        {std.score}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </main>
 
