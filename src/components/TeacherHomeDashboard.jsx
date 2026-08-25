@@ -10,12 +10,9 @@ import {
   Presentation,
   CheckSquare,
   Users,
-  BarChart3,
   Calendar,
-  AlertCircle,
   MoreVertical,
   Bell,
-  Search,
   ChevronDown,
   Menu,
   X,
@@ -25,9 +22,7 @@ import {
   Clock,
   LogOut,
   Settings,
-  CheckCircle,
-  Trash2,
-  Lock
+  CheckCircle
 } from 'lucide-react';
 
 export default function TeacherHomeDashboard({ setView }) {
@@ -48,20 +43,17 @@ export default function TeacherHomeDashboard({ setView }) {
   // Toast Notifications State
   const [toasts, setToasts] = useState([]);
 
-  // Mock Notification Data
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "AI generated a new Worksheet for Physics", time: "5 mins ago", read: false },
-    { id: 2, text: "Evaluation complete for Chemistry assignment", time: "1 hour ago", read: false },
-    { id: 3, text: "Class 10B performance analytics report is ready", time: "2 hours ago", read: true }
-  ]);
+  // Mock Notification Data - CLEARED
+  const [notifications, setNotifications] = useState([]);
 
-  // Mock Materials Data
-  const [materials, setMaterials] = useState([
-    { id: 1, subject: 'Mathematics', chapter: 'Trigonometry', type: 'Question Paper', date: 'Created 2 hours ago', icon: FileText, color: 'text-blue-600 bg-blue-50' },
-    { id: 2, subject: 'Physics', chapter: 'Motion', type: 'Lesson Plan', date: 'Created yesterday', icon: BookOpen, color: 'text-indigo-600 bg-indigo-50' },
-    { id: 3, subject: 'Chemistry', chapter: 'Acids & Bases', type: 'Quiz', date: 'Created 2 days ago', icon: HelpCircle, color: 'text-violet-600 bg-violet-50' },
-    { id: 4, subject: 'Biology', chapter: 'Cell Structure', type: 'Worksheet', date: 'Created 3 days ago', icon: ClipboardList, color: 'text-sky-600 bg-sky-50' }
-  ]);
+  // Mock Materials Data - CLEARED (Populated dynamically on upload)
+  const [materials, setMaterials] = useState([]);
+
+  // Upcoming Activities - CLEARED
+  const [upcomingActivities, setUpcomingActivities] = useState([]);
+
+  // Recent Sessions - CLEARED
+  const [recentSessions, setRecentSessions] = useState([]);
 
   // Show Toast Function
   const showToast = (message, type = 'success') => {
@@ -107,19 +99,40 @@ export default function TeacherHomeDashboard({ setView }) {
       setIsUploading(false);
       setUploadModalOpen(false);
       
+      const chapterName = uploadedFile.name.replace(/\.[^/.]+$/, "");
       // Add new material to list
       const newMaterial = {
         id: Date.now(),
         subject: selectedSubject,
-        chapter: uploadedFile.name.replace(/\.[^/.]+$/, ""),
+        chapter: chapterName,
         type: 'Lesson Plan',
         date: 'Created just now',
         icon: BookOpen,
         color: 'text-blue-600 bg-blue-50'
       };
+      
       setMaterials((prev) => [newMaterial, ...prev]);
+      
+      // Update stats and recent sessions dynamically
+      const newSession = {
+        name: `${selectedSubject} – ${chapterName}`,
+        type: 'Lesson Plan',
+        details: 'Edited just now',
+        icon: BookOpen
+      };
+      setRecentSessions((prev) => [newSession, ...prev]);
+
+      // Add a notification dynamically
+      const newNotification = {
+        id: Date.now(),
+        text: `AI successfully generated Lesson Plan for ${chapterName}`,
+        time: "Just now",
+        read: false
+      };
+      setNotifications((prev) => [newNotification, ...prev]);
+
       setUploadedFile(null);
-      showToast(`Chapter "${newMaterial.chapter}" successfully uploaded and analyzed by AI!`);
+      showToast(`Chapter "${chapterName}" successfully uploaded and analyzed by AI!`);
     }, 2000);
   };
 
@@ -212,23 +225,31 @@ export default function TeacherHomeDashboard({ setView }) {
                     >
                       <div className="p-3.5 border-b border-slate-100 flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-900">Notifications</span>
-                        <button
-                          onClick={markAllNotificationsRead}
-                          className="text-[10px] text-blue-600 hover:text-blue-700 hover:underline font-semibold cursor-pointer"
-                        >
-                          Mark all as read
-                        </button>
+                        {notifications.length > 0 && (
+                          <button
+                            onClick={markAllNotificationsRead}
+                            className="text-[10px] text-blue-600 hover:text-blue-700 hover:underline font-semibold cursor-pointer"
+                          >
+                            Mark all as read
+                          </button>
+                        )}
                       </div>
                       <div className="divide-y divide-slate-50 max-h-60 overflow-y-auto">
-                        {notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            className={`p-3 text-xs transition-colors duration-150 ${n.read ? 'bg-white' : 'bg-blue-50/20'}`}
-                          >
-                            <p className="text-slate-700 font-medium">{n.text}</p>
-                            <span className="text-[10px] text-slate-400 block mt-1">{n.time}</span>
+                        {notifications.length === 0 ? (
+                          <div className="p-4 text-center text-xs text-slate-400 font-medium">
+                            No notifications
                           </div>
-                        ))}
+                        ) : (
+                          notifications.map((n) => (
+                            <div
+                              key={n.id}
+                              className={`p-3 text-xs transition-colors duration-150 ${n.read ? 'bg-white' : 'bg-blue-50/20'}`}
+                            >
+                              <p className="text-slate-700 font-medium">{n.text}</p>
+                              <span className="text-[10px] text-slate-400 block mt-1">{n.time}</span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </motion.div>
                   )}
@@ -404,13 +425,13 @@ export default function TeacherHomeDashboard({ setView }) {
           </div>
         </div>
 
-        {/* Overview Stats Section */}
+        {/* Overview Stats Section - CLEARED MOCK DATA */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Classes', value: '08', trend: '+12% this month', icon: Users, color: 'text-blue-600' },
-            { label: 'Total Students', value: '240', trend: '+8% this term', icon: Users, color: 'text-indigo-600' },
-            { label: 'Lessons Created', value: '42', trend: '+18 new recently', icon: BookOpen, color: 'text-violet-600' },
-            { label: 'Question Papers', value: '18', trend: '+4 this week', icon: FileText, color: 'text-sky-600' }
+            { label: 'Total Classes', value: '0', trend: 'No classes active', icon: Users, color: 'text-blue-600' },
+            { label: 'Total Students', value: '0', trend: 'No students enrolled', icon: Users, color: 'text-indigo-600' },
+            { label: 'Lessons Created', value: '0', trend: 'No generated materials', icon: BookOpen, color: 'text-violet-600' },
+            { label: 'Question Papers', value: '0', trend: 'No assessment sheets', icon: FileText, color: 'text-sky-600' }
           ].map((stat, idx) => {
             const Icon = stat.icon;
             return (
@@ -421,8 +442,8 @@ export default function TeacherHomeDashboard({ setView }) {
                 </div>
                 <div>
                   <span className="text-2xl font-extrabold text-slate-900 block leading-none mb-1">{stat.value}</span>
-                  <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" /> {stat.trend}
+                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                    {stat.trend}
                   </span>
                 </div>
               </div>
@@ -437,76 +458,85 @@ export default function TeacherHomeDashboard({ setView }) {
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-slate-50 pb-3">
                 <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Recent Materials</h3>
-                <button
-                  onClick={() => {
-                    setActiveTab('Materials');
-                    showToast("Switched to Materials manager view");
-                  }}
-                  className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-bold cursor-pointer"
-                >
-                  View All
-                </button>
+                {materials.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setActiveTab('Materials');
+                      showToast("Switched to Materials manager view");
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-bold cursor-pointer"
+                  >
+                    View All
+                  </button>
+                )}
               </div>
 
               <div className="divide-y divide-slate-50">
-                {materials.map((m) => {
-                  const Icon = m.icon;
-                  return (
-                    <div key={m.id} className="py-3 flex items-center justify-between group hover:bg-slate-50/50 rounded-xl px-2 transition-colors duration-150">
-                      <div className="flex items-center space-x-3.5">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.color}`}>
-                          <Icon className="w-4.5 h-4.5" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-900">{m.subject} – {m.chapter}</span>
-                            <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md">
-                              {m.type}
-                            </span>
+                {materials.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400 text-xs font-medium space-y-1">
+                    <p>No materials generated yet.</p>
+                    <p className="text-[10px] text-slate-400 font-normal">Upload a chapter resource to let AI generate study plans.</p>
+                  </div>
+                ) : (
+                  materials.map((m) => {
+                    const Icon = m.icon;
+                    return (
+                      <div key={m.id} className="py-3 flex items-center justify-between group hover:bg-slate-50/50 rounded-xl px-2 transition-colors duration-150">
+                        <div className="flex items-center space-x-3.5">
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${m.color}`}>
+                            <Icon className="w-4.5 h-4.5" />
                           </div>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">{m.date}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-900">{m.subject} – {m.chapter}</span>
+                              <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-md">
+                                {m.type}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">{m.date}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => showToast(`Opening preview for ${m.chapter} (${m.type})`)}
+                            className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer"
+                          >
+                            Open
+                          </button>
+                          <button
+                            onClick={() => showToast(`Edit options opened for ${m.chapter}`)}
+                            className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-600 cursor-pointer"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => showToast(`Opening preview for ${m.chapter} (${m.type})`)}
-                          className="px-2.5 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer"
-                        >
-                          Open
-                        </button>
-                        <button
-                          onClick={() => showToast(`Edit options opened for ${m.chapter}`)}
-                          className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
 
-          {/* Right panel: Student Performance Chart (5 columns) */}
+          {/* Right panel: Student Performance Chart (5 columns) - INITIALIZED TO 0 */}
           <div className="lg:col-span-5 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
             <div className="space-y-4">
               <div className="border-b border-slate-50 pb-3">
                 <h3 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Student Performance</h3>
               </div>
 
-              {/* Progress bars instead of charting packages for max styling and lightweight responsiveness */}
+              {/* Progress bars set to 0% as initial state */}
               <div className="space-y-3.5">
                 {[
-                  { className: 'Class 10A', score: 82, color: 'bg-blue-600' },
-                  { className: 'Class 10B', score: 74, color: 'bg-indigo-600' },
-                  { className: 'Class 9A', score: 79, color: 'bg-violet-600' },
-                  { className: 'Class 9B', score: 86, color: 'bg-sky-600' }
+                  { className: 'Class 10A', score: 0, color: 'bg-blue-600' },
+                  { className: 'Class 10B', score: 0, color: 'bg-indigo-600' },
+                  { className: 'Class 9A', score: 0, color: 'bg-violet-600' },
+                  { className: 'Class 9B', score: 0, color: 'bg-sky-600' }
                 ].map((c, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-xs font-semibold text-slate-700">
+                    <div className="flex justify-between text-xs font-semibold text-slate-400">
                       <span>{c.className}</span>
-                      <span className="font-bold text-slate-900">{c.score}%</span>
+                      <span className="font-bold text-slate-400">{c.score}%</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                       <motion.div
@@ -524,19 +554,19 @@ export default function TeacherHomeDashboard({ setView }) {
               <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
                 <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
                   <span className="text-[10px] text-slate-400 font-semibold block uppercase">Avg Score</span>
-                  <span className="font-bold text-slate-900 text-sm">80.2%</span>
+                  <span className="font-bold text-slate-400 text-sm">-</span>
                 </div>
                 <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
                   <span className="text-[10px] text-slate-400 font-semibold block uppercase">Assignments</span>
-                  <span className="font-bold text-slate-900 text-sm">94.8% Complete</span>
+                  <span className="font-bold text-slate-400 text-sm">0% Complete</span>
                 </div>
                 <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
                   <span className="text-[10px] text-slate-400 font-semibold block uppercase">Quiz Performance</span>
-                  <span className="font-bold text-slate-900 text-sm">78.5% Avg</span>
+                  <span className="font-bold text-slate-400 text-sm">-</span>
                 </div>
-                <div className="bg-rose-50 p-2.5 rounded-xl text-xs text-left cursor-pointer hover:bg-rose-100/50 transition-colors" onClick={() => showToast("Showing 4 students needing curriculum attention")}>
-                  <span className="text-[10px] text-rose-500 font-semibold block uppercase">Needs Attention</span>
-                  <span className="font-bold text-rose-700 text-sm">4 Students</span>
+                <div className="bg-slate-50 p-2.5 rounded-xl text-xs text-left">
+                  <span className="text-[10px] text-slate-400 font-semibold block uppercase">Needs Attention</span>
+                  <span className="font-bold text-slate-400 text-sm">0 Students</span>
                 </div>
               </div>
             </div>
@@ -545,7 +575,7 @@ export default function TeacherHomeDashboard({ setView }) {
 
         {/* Secondary Grid: Upcoming activities & AI Insight Card */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Side: Upcoming Activities (6 columns) */}
+          {/* Left Side: Upcoming Activities (6 columns) - CLEARED */}
           <div className="lg:col-span-6 bg-white border border-slate-100 rounded-2xl p-6 shadow-xs flex flex-col justify-between text-left">
             <div className="space-y-4">
               <div className="border-b border-slate-50 pb-3 flex items-center justify-between">
@@ -554,27 +584,28 @@ export default function TeacherHomeDashboard({ setView }) {
               </div>
 
               <div className="space-y-3">
-                {[
-                  { title: 'Mathematics – Chapter 5', date: 'Tomorrow, 09:00 AM', status: 'Lesson Plan Ready', type: 'lecture' },
-                  { title: 'Physics – Motion MCQ Quiz', date: 'Thu, 11:30 AM', status: 'Quiz Drafted', type: 'quiz' },
-                  { title: 'Chemistry – Evaluation of Acids Assignment', date: 'Fri, 04:00 PM', status: 'Pending Review', type: 'evaluation' },
-                  { title: 'Biology – Cell Structure Lecture', date: 'Mon, 10:15 AM', status: 'Slides Ready', type: 'lecture' }
-                ].map((act, idx) => (
-                  <div key={idx} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
-                    <div className="space-y-1">
-                      <h4 className="text-xs font-bold text-slate-900">{act.title}</h4>
-                      <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-medium">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{act.date}</span>
-                      </div>
-                    </div>
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                      act.status.includes('Pending') ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'
-                    }`}>
-                      {act.status}
-                    </span>
+                {upcomingActivities.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400 text-xs font-medium">
+                    No upcoming activities scheduled.
                   </div>
-                ))}
+                ) : (
+                  upcomingActivities.map((act, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition-colors border border-transparent hover:border-slate-100">
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-slate-900">{act.title}</h4>
+                        <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-medium">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{act.date}</span>
+                        </div>
+                      </div>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                        act.status.includes('Pending') ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50'
+                      }`}>
+                        {act.status}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -593,65 +624,57 @@ export default function TeacherHomeDashboard({ setView }) {
 
               <div className="space-y-2">
                 <p className="text-sm font-bold text-white leading-relaxed">
-                  Students in Class 10B are struggling with Trigonometry.
+                  No active classroom metrics found.
                 </p>
                 <p className="text-xs text-blue-100 font-medium leading-relaxed">
-                  Analyzing past quiz submissions showed that 64% of cohort errors occurred on trigonometry identities. Consider creating an additional practice worksheet or lesson review.
+                  Upload a chapter or lesson file to evaluate student knowledge gaps and view personalized AI recommendations.
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 pt-6 relative z-10">
               <button
-                onClick={() => showToast("Auto-generating practice worksheet for trigonometry...")}
+                onClick={() => setUploadModalOpen(true)}
                 className="px-4 py-2 bg-white text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-50 transition-colors shadow-sm cursor-pointer"
               >
-                Generate Worksheet
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('Analytics');
-                  showToast("Opening trigonometry topic drilldown report");
-                }}
-                className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold rounded-lg transition-colors border border-blue-500/50 cursor-pointer"
-              >
-                View Analytics
+                Upload Resource
               </button>
             </div>
           </div>
         </div>
 
-        {/* Bottom Productivity Section */}
+        {/* Bottom Productivity Section - CLEARED */}
         <div className="space-y-4">
           <div className="flex items-center space-x-2 text-left">
             <h2 className="text-sm font-bold text-slate-950 uppercase tracking-widest">Continue where you left off</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { name: 'Chapter 5 Schema Design', type: 'Chapter File', details: 'Opened 30 mins ago', icon: File },
-              { name: 'Class 10A Trigonometry Guide', type: 'Lesson Plan', details: 'Edited 3 hours ago', icon: BookOpen },
-              { name: 'Motion Mechanics Exam', type: 'Question Paper', details: 'Created yesterday', icon: FileText },
-              { name: 'Acids, Bases & Salts MCQ Quiz', type: 'Interactive Quiz', details: 'Created 2 days ago', icon: HelpCircle }
-            ].map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={idx}
-                  onClick={() => showToast(`Resuming session: "${item.name}"`)}
-                  className="bg-white border border-slate-100 hover:border-blue-100 hover:shadow-xs p-4 rounded-xl cursor-pointer text-left transition-all duration-150"
-                >
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <Icon className="w-4 h-4" />
+            {recentSessions.length === 0 ? (
+              <div className="col-span-full bg-white border border-slate-100 p-8 rounded-xl text-center text-slate-400 text-xs font-medium">
+                No recent sessions found. Upload a chapter to get started!
+              </div>
+            ) : (
+              recentSessions.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => showToast(`Resuming session: "${item.name}"`)}
+                    className="bg-white border border-slate-100 hover:border-blue-100 hover:shadow-xs p-4 rounded-xl cursor-pointer text-left transition-all duration-150"
+                  >
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.type}</span>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.type}</span>
+                    <h4 className="text-xs font-bold text-slate-800 block truncate">{item.name}</h4>
+                    <span className="text-[9px] text-slate-400 block mt-1 font-semibold">{item.details}</span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-800 block truncate">{item.name}</h4>
-                  <span className="text-[9px] text-slate-400 block mt-1 font-semibold">{item.details}</span>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
 

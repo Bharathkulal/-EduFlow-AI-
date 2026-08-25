@@ -4,8 +4,8 @@ import { ArrowLeft, Mail, Lock, ArrowRight, CheckCircle2, Sparkles } from 'lucid
 
 export default function Login({ setView }) {
   const [role, setRole] = useState('teacher'); // teacher, student, institution
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('teacher@eduflow.ai');
+  const [password, setPassword] = useState('teacher123');
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -37,13 +37,26 @@ export default function Login({ setView }) {
     if (!handleValidation()) return;
 
     setIsLoading(true);
+    setErrors({});
+    
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        setView('dashboard'); // Go to teacher dashboard on success
-      }, 1500);
+      const lowerEmail = email.toLowerCase();
+      
+      // Verify mock credentials based on role selection
+      if (
+        (role === 'teacher' && lowerEmail === 'teacher@eduflow.ai' && password === 'teacher123') ||
+        (role === 'student' && lowerEmail === 'student@eduflow.ai' && password === 'student123') ||
+        (role === 'institution' && lowerEmail === 'admin@eduflow.ai' && password === 'admin123')
+      ) {
+        setIsSuccess(true);
+        setTimeout(() => {
+          setView('dashboard'); // Go to teacher dashboard on success
+        }, 1500);
+      } else {
+        setErrors({ form: 'Invalid email or password for the selected role.' });
+      }
     }, 1800);
   };
 
@@ -67,9 +80,9 @@ export default function Login({ setView }) {
         <span className="text-sm font-medium">Back to Home</span>
       </motion.button>
 
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10 relative">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch z-10 relative">
         {/* Left Side: Elegant Branding and Info Panel */}
-        <div className="lg:col-span-5 hidden lg:flex flex-col justify-center text-left space-y-6 pr-8">
+        <div className="lg:col-span-5 hidden lg:flex flex-col justify-center text-left space-y-5 pr-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -86,13 +99,13 @@ export default function Login({ setView }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             <h1 className="text-3xl font-extrabold tracking-tight leading-tight text-slate-900">
               Simplify Your <br />
               Teaching Workflow.
             </h1>
-            <p className="text-slate-600 text-sm leading-relaxed">
+            <p className="text-slate-600 text-xs leading-relaxed">
               Log in to access your customized dashboard, manage interactive assignments, track student skill gaps, and generate curriculum assets instantly.
             </p>
           </motion.div>
@@ -102,7 +115,7 @@ export default function Login({ setView }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="space-y-3 pt-4 border-t border-slate-200"
+            className="space-y-2.5 pt-3.5 border-t border-slate-200"
           >
             <div className="flex items-center space-x-3 text-xs text-slate-700">
               <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
@@ -123,6 +136,63 @@ export default function Login({ setView }) {
               <span>Bloom's Taxonomy Compliant Assessments</span>
             </div>
           </motion.div>
+
+          {/* Mock Accounts & Database Cardinality Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="space-y-2 pt-3.5 border-t border-slate-200 text-xs"
+          >
+            <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">Mock Credentials & Entity Cardinalities</span>
+            
+            <div className="bg-white/80 border border-slate-200/80 rounded-xl p-3 space-y-2.5 shadow-xs">
+              <div className="cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-colors" onClick={() => {
+                setRole('teacher');
+                setEmail('teacher@eduflow.ai');
+                setPassword('teacher123');
+                setErrors({});
+              }}>
+                <div className="flex justify-between font-bold text-slate-900">
+                  <span>Teacher Account</span>
+                  <span className="text-[9px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded">1 : N (Classrooms)</span>
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  <span className="font-medium">Email:</span> teacher@eduflow.ai | <span className="font-medium">Pass:</span> teacher123
+                </div>
+              </div>
+              
+              <div className="border-t border-slate-100 pt-2 cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-colors" onClick={() => {
+                setRole('student');
+                setEmail('student@eduflow.ai');
+                setPassword('student123');
+                setErrors({});
+              }}>
+                <div className="flex justify-between font-bold text-slate-900">
+                  <span>Student Account</span>
+                  <span className="text-[9px] text-indigo-600 font-semibold bg-indigo-50 px-1.5 py-0.5 rounded">1 : N (Assessments)</span>
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  <span className="font-medium">Email:</span> student@eduflow.ai | <span className="font-medium">Pass:</span> student123
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-2 cursor-pointer hover:bg-slate-50 p-1 rounded-lg transition-colors" onClick={() => {
+                setRole('institution');
+                setEmail('admin@eduflow.ai');
+                setPassword('admin123');
+                setErrors({});
+              }}>
+                <div className="flex justify-between font-bold text-slate-900">
+                  <span>Institution Admin</span>
+                  <span className="text-[9px] text-violet-600 font-semibold bg-violet-50 px-1.5 py-0.5 rounded">1 : N (Departments)</span>
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  <span className="font-medium">Email:</span> admin@eduflow.ai | <span className="font-medium">Pass:</span> admin123
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Right Side: Animated Interactive Login Form Card */}
@@ -130,7 +200,7 @@ export default function Login({ setView }) {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-          className="lg:col-span-7 bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)]"
+          className="lg:col-span-7 bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.05)] flex flex-col justify-center"
         >
           <AnimatePresence mode="wait">
             {!isSuccess ? (
@@ -156,7 +226,21 @@ export default function Login({ setView }) {
                       <button
                         key={r.id}
                         type="button"
-                        onClick={() => setRole(r.id)}
+                        onClick={() => {
+                          setRole(r.id);
+                          // Auto fill credentials matching the tab
+                          if (r.id === 'teacher') {
+                            setEmail('teacher@eduflow.ai');
+                            setPassword('teacher123');
+                          } else if (r.id === 'student') {
+                            setEmail('student@eduflow.ai');
+                            setPassword('student123');
+                          } else {
+                            setEmail('admin@eduflow.ai');
+                            setPassword('admin123');
+                          }
+                          setErrors({});
+                        }}
                         className="relative py-2 px-1 text-xs font-semibold rounded-lg transition-all duration-200 focus:outline-none"
                       >
                         {isActive && (
@@ -197,6 +281,7 @@ export default function Login({ setView }) {
                         onChange={(e) => {
                           setEmail(e.target.value);
                           if (errors.email) setErrors({ ...errors, email: '' });
+                          if (errors.form) setErrors({ ...errors, form: '' });
                         }}
                         placeholder="you@domain.com"
                         className={`w-full bg-white border ${
@@ -225,6 +310,7 @@ export default function Login({ setView }) {
                         onChange={(e) => {
                           setPassword(e.target.value);
                           if (errors.password) setErrors({ ...errors, password: '' });
+                          if (errors.form) setErrors({ ...errors, form: '' });
                         }}
                         placeholder="••••••••"
                         className={`w-full bg-white border ${
@@ -238,6 +324,17 @@ export default function Login({ setView }) {
                       </motion.p>
                     )}
                   </div>
+
+                  {/* General Submit Error Form message */}
+                  {errors.form && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-rose-50 border border-rose-100 rounded-xl p-3 text-xs text-rose-600 text-left font-medium"
+                    >
+                      {errors.form}
+                    </motion.div>
+                  )}
 
                   {/* Submit Button */}
                   <button
