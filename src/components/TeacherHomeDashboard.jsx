@@ -37,7 +37,7 @@ export default function TeacherHomeDashboard({ setView }) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState('Mathematics');
-  const [selectedGrade, setSelectedGrade] = useState('Class 10A');
+  const [selectedGrade, setSelectedGrade] = useState('I BCA A');
   const [isUploading, setIsUploading] = useState(false);
 
   // Toast Notifications State
@@ -526,12 +526,17 @@ export default function TeacherHomeDashboard({ setView }) {
               </div>
 
               {/* Progress bars set to 0% as initial state */}
-              <div className="space-y-3.5">
+              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                 {[
-                  { className: 'Class 10A', score: 0, color: 'bg-blue-600' },
-                  { className: 'Class 10B', score: 0, color: 'bg-indigo-600' },
-                  { className: 'Class 9A', score: 0, color: 'bg-violet-600' },
-                  { className: 'Class 9B', score: 0, color: 'bg-sky-600' }
+                  { className: 'I BCA A', score: 0, color: 'bg-blue-600' },
+                  { className: 'I BCA B', score: 0, color: 'bg-indigo-600' },
+                  { className: 'I BCA C', score: 0, color: 'bg-violet-600' },
+                  { className: 'II BCA A', score: 0, color: 'bg-sky-600' },
+                  { className: 'II BCA B', score: 0, color: 'bg-emerald-600' },
+                  { className: 'II BCA C', score: 0, color: 'bg-teal-600' },
+                  { className: 'III BCA A', score: 0, color: 'bg-cyan-600' },
+                  { className: 'III BCA B', score: 0, color: 'bg-purple-600' },
+                  { className: 'III BCA C', score: 0, color: 'bg-pink-600' }
                 ].map((c, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-xs font-semibold text-slate-400">
@@ -542,7 +547,7 @@ export default function TeacherHomeDashboard({ setView }) {
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${c.score}%` }}
-                        transition={{ duration: 0.8, delay: idx * 0.1 }}
+                        transition={{ duration: 0.8, delay: idx * 0.05 }}
                         className={`h-full rounded-full ${c.color}`}
                       />
                     </div>
@@ -736,10 +741,15 @@ export default function TeacherHomeDashboard({ setView }) {
                         onChange={(e) => setSelectedGrade(e.target.value)}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
                       >
-                        <option>Class 10A</option>
-                        <option>Class 10B</option>
-                        <option>Class 9A</option>
-                        <option>Class 9B</option>
+                        <option>I BCA A</option>
+                        <option>I BCA B</option>
+                        <option>I BCA C</option>
+                        <option>II BCA A</option>
+                        <option>II BCA B</option>
+                        <option>II BCA C</option>
+                        <option>III BCA A</option>
+                        <option>III BCA B</option>
+                        <option>III BCA C</option>
                       </select>
                     </div>
                   </div>
