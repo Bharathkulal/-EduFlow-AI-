@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Mail, Lock, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { login } from '../api/authApi';
 
 export default function Login({ setView }) {
   const [role, setRole] = useState('teacher'); // teacher, student, institution
@@ -32,32 +33,28 @@ export default function Login({ setView }) {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!handleValidation()) return;
 
     setIsLoading(true);
     setErrors({});
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Connects to actual Node Express Backend login endpoint
+      await login(email, password);
+      setIsSuccess(true);
+      setTimeout(() => {
+        setView('dashboard'); // Redirects to teacher dashboard on successful session init
+      }, 1200);
+    } catch (error) {
+      const errorMsg = error.response && error.response.data && error.response.data.message
+        ? error.response.data.message
+        : 'Connection failed. Check your internet connection.';
+      setErrors({ form: errorMsg });
+    } finally {
       setIsLoading(false);
-      const lowerEmail = email.toLowerCase();
-      
-      // Verify mock credentials based on role selection
-      if (
-        (role === 'teacher' && lowerEmail === 'teacher@eduflow.ai' && password === 'teacher123') ||
-        (role === 'student' && lowerEmail === 'student@eduflow.ai' && password === 'student123') ||
-        (role === 'institution' && lowerEmail === 'admin@eduflow.ai' && password === 'admin123')
-      ) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          setView('dashboard'); // Go to teacher dashboard on success
-        }, 1500);
-      } else {
-        setErrors({ form: 'Invalid email or password for the selected role.' });
-      }
-    }, 1800);
+    }
   };
 
   return (
