@@ -42,7 +42,7 @@ export default function Login({ setView }) {
       setIsLoading(false);
       setIsSuccess(true);
       setTimeout(() => {
-        setView('landing'); // Return home on success
+        setView('dashboard'); // Go to teacher dashboard on success
       }, 1500);
     }, 1800);
   };

@@ -20,6 +20,7 @@ import FeatureGrid from './components/FeatureGrid';
 import FinalCTA from './components/FinalCTA';
 import Footer from './components/Footer';
 import Login from './components/Login';
+import TeacherHomeDashboard from './components/TeacherHomeDashboard';
 
 function App() {
   const [view, setView] = useState('landing');
@@ -51,8 +52,10 @@ function App() {
           </main>
           <Footer />
         </>
-      ) : (
+      ) : view === 'login' ? (
         <Login setView={setView} />
+      ) : (
+        <TeacherHomeDashboard setView={setView} />
       )}
     </div>
   );
