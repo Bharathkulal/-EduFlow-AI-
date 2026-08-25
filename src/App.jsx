@@ -30,7 +30,7 @@ function App() {
         <>
           <Navbar setView={setView} />
           <main>
-            <Hero />
+            <Hero setView={setView} />
             <Metrics />
             <ProblemSection />
             <CoreWorkflow />
@@ -47,7 +47,7 @@ function App() {
             <StudentDashboard />
             <InstitutionSection />
             <FeatureGrid />
-            <FinalCTA />
+            <FinalCTA setView={setView} />
           </main>
           <Footer />
         </>

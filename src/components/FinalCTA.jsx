@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 
-export default function FinalCTA() {
+export default function FinalCTA({ setView }) {
   return (
     <section className="py-24 bg-white text-center">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,13 +13,13 @@ export default function FinalCTA() {
           Create better teaching resources, understand student performance, and personalize learning from one intelligent platform.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a 
-            href="#hero-section"
-            className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+          <button 
+            onClick={() => setView('login')}
+            className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer"
           >
             <span>Start Creating</span>
             <ArrowRight className="w-4 h-4 ml-2" />
-          </a>
+          </button>
           <a 
             href="#features"
             className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-xl transition-all duration-200"

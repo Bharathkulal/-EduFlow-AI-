@@ -3,7 +3,7 @@ import { motion } from 'react';
 import { motion as motionElement } from 'framer-motion';
 import { ArrowRight, Sparkles, FileText, ChevronRight, Check } from 'lucide-react';
 
-export default function Hero() {
+export default function Hero({ setView }) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -68,13 +68,13 @@ export default function Hero() {
               variants={itemVariants}
               className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-4"
             >
-              <a 
-                href="#assistant"
-                className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 group"
+              <button 
+                onClick={() => setView('login')}
+                className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 group cursor-pointer"
               >
                 <span>Start Creating</span>
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </a>
+              </button>
               <a 
                 href="#workflow"
                 className="inline-flex items-center justify-center px-6 py-3.5 text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-xl shadow-sm transition-all duration-200"

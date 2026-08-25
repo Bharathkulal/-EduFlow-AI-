@@ -51,12 +51,12 @@ export default function Navbar({ setView }) {
             >
               Sign In
             </button>
-            <a 
-              href="#hero-section"
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm hover:shadow transition-all duration-150 transform hover:-translate-y-0.5"
+            <button 
+              onClick={() => setView('login')}
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm hover:shadow transition-all duration-150 transform hover:-translate-y-0.5 cursor-pointer"
             >
               Start Creating
-            </a>
+            </button>
           </div>
 
           {/* Mobile hamburger */}
@@ -94,13 +94,15 @@ export default function Navbar({ setView }) {
             >
               Sign In
             </button>
-            <a 
-              href="#hero-section"
-              onClick={() => setIsOpen(false)}
-              className="text-center px-4 py-2.5 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
+            <button 
+              onClick={() => {
+                setView('login');
+                setIsOpen(false);
+              }}
+              className="text-center px-4 py-2.5 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm cursor-pointer"
             >
               Start Creating
-            </a>
+            </button>
           </div>
         </div>
       </div>
