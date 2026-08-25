@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Metrics from './components/Metrics';
@@ -19,32 +19,41 @@ import InstitutionSection from './components/InstitutionSection';
 import FeatureGrid from './components/FeatureGrid';
 import FinalCTA from './components/FinalCTA';
 import Footer from './components/Footer';
+import Login from './components/Login';
 
 function App() {
+  const [view, setView] = useState('landing');
+
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-      <main>
-        <Hero />
-        <Metrics />
-        <ProblemSection />
-        <CoreWorkflow />
-        <TeachingAssistant />
-        <LessonPlan />
-        <AssessmentGenerator />
-        <BloomTaxonomy />
-        <ResourceGenerator />
-        <Multilingual />
-        <StudentAssessment />
-        <PerformanceAnalytics />
-        <PersonalizedLearning />
-        <TeacherDashboard />
-        <StudentDashboard />
-        <InstitutionSection />
-        <FeatureGrid />
-        <FinalCTA />
-      </main>
-      <Footer />
+      {view === 'landing' ? (
+        <>
+          <Navbar setView={setView} />
+          <main>
+            <Hero />
+            <Metrics />
+            <ProblemSection />
+            <CoreWorkflow />
+            <TeachingAssistant />
+            <LessonPlan />
+            <AssessmentGenerator />
+            <BloomTaxonomy />
+            <ResourceGenerator />
+            <Multilingual />
+            <StudentAssessment />
+            <PerformanceAnalytics />
+            <PersonalizedLearning />
+            <TeacherDashboard />
+            <StudentDashboard />
+            <InstitutionSection />
+            <FeatureGrid />
+            <FinalCTA />
+          </main>
+          <Footer />
+        </>
+      ) : (
+        <Login setView={setView} />
+      )}
     </div>
   );
 }
