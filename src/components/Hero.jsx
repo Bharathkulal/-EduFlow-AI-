@@ -28,12 +28,12 @@ export default function Hero({ setView }) {
   ];
 
   return (
-    <section id="hero-section" className="relative bg-white pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden">
+    <section id="hero-section" className="relative bg-white lg:min-h-[calc(100vh-80px)] lg:flex lg:items-center pt-24 pb-16 md:pt-32 md:pb-20 overflow-hidden">
       {/* Background radial glow */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(79,70,229,0.04),rgba(255,255,255,0))]" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
           
           {/* Left: Text CTAs */}
           <motionElement.div 
@@ -49,7 +49,7 @@ export default function Hero({ setView }) {
 
             <motionElement.h1 
               variants={itemVariants}
-              className="text-4xl sm:text-5xl lg:text-[58px] font-extrabold tracking-tight text-gray-900 leading-[1.1] mb-6"
+              className="text-4xl sm:text-5xl lg:text-[56px] xl:text-[64px] font-extrabold tracking-tight text-gray-900 leading-[1.15] mb-6"
             >
               From One Chapter <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-800">
@@ -92,14 +92,14 @@ export default function Hero({ setView }) {
           </motionElement.div>
 
           {/* Right: Mockup Dashboard Visual */}
-          <div className="lg:col-span-7 relative flex justify-center">
+          <div className="lg:col-span-7 relative flex justify-center lg:justify-end xl:pr-4">
             <div className="absolute w-72 h-72 bg-indigo-100 rounded-full blur-3xl opacity-20 -z-10" />
 
             <motionElement.div 
               initial={{ opacity: 0, scale: 0.96, y: 25 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 80, delay: 0.2 }}
-              className="w-full max-w-[580px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-2xl p-5 sm:p-6 space-y-6 text-left"
+              className="w-full max-w-[580px] lg:max-w-[620px] xl:max-w-[650px] bg-white border border-gray-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-2xl p-5 sm:p-6 space-y-6 text-left"
             >
               {/* Box 1: Chapter Upload */}
               <div className="border border-gray-100 rounded-xl p-4 bg-gray-50/50 flex items-center justify-between">

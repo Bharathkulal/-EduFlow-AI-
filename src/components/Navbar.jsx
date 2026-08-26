@@ -23,37 +23,37 @@ export default function Navbar({ setView }) {
       ? 'bg-white/80 backdrop-blur-md border-b border-gray-100 py-3 shadow-sm' 
       : 'bg-white border-b border-gray-100 py-4'
     }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-12">
+      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14">
           {/* Logo */}
-          <div className="flex items-center space-x-2 flex-shrink-0 cursor-pointer" onClick={() => setView('landing')}>
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div className="flex items-center space-x-3 flex-shrink-0 cursor-pointer" onClick={() => setView('landing')}>
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-md transform hover:rotate-6 transition-transform duration-200">
               E
             </div>
-            <span className="font-bold text-xl tracking-tight text-gray-900">EduFlow AI</span>
+            <span className="font-extrabold text-2xl tracking-tight text-gray-900 bg-gradient-to-r from-indigo-600 to-indigo-950 bg-clip-text text-transparent">EduFlow AI</span>
           </div>
 
           {/* Center navigation */}
-          <div className="hidden md:flex space-x-6 lg:space-x-8 items-center">
-            <a href="#product" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">Product</a>
-            <a href="#workflow" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">How It Works</a>
-            <a href="#assistant" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">AI Tools</a>
-            <a href="#teacher-section" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">For Teachers</a>
-            <a href="#student-section" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">For Students</a>
-            <a href="#institutions" className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">For Institutions</a>
+          <div className="hidden md:flex space-x-8 lg:space-x-10 items-center">
+            <a href="#product" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Product</a>
+            <a href="#workflow" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">How It Works</a>
+            <a href="#assistant" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">AI Tools</a>
+            <a href="#teacher-section" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">For Teachers</a>
+            <a href="#student-section" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">For Students</a>
+            <a href="#institutions" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">For Institutions</a>
           </div>
 
           {/* Right CTA */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-6">
             <button 
               onClick={() => setView('login')}
-              className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+              className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors"
             >
               Sign In
             </button>
             <button 
               onClick={() => setView('login')}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm hover:shadow transition-all duration-150 transform hover:-translate-y-0.5 cursor-pointer"
+              className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-150 transform hover:-translate-y-0.5 cursor-pointer"
             >
               Start Creating
             </button>
