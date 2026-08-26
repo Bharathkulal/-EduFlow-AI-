@@ -4,10 +4,25 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --accent: #FEC700;
+  --accent-bg: #013c28;
+  --accent-border: #FEC700;
+  --border: rgba(254, 199, 0, 0.2);
+  --text-h: #FEC700;
+  --social-bg: #035237;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
 @layer base {
   body {
-    @apply font-sans bg-white text-[#111111] antialiased selection:bg-indigo-100 selection:text-indigo-900;
+    @apply font-sans bg-[#02462E] text-[#FEC700] antialiased selection:bg-[#FEC700] selection:text-[#02462E];
   }
+}
+
+/* Global selector overrides for FAFAFA background sections to Forest Green */
+[class*="bg-[#FAFAFA]"], .bg-\[\#FAFAFA\] {
+  background-color: #013c28 !important;
 }
 
 /* Custom Scrollbar */

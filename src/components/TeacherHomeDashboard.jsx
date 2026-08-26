@@ -535,7 +535,7 @@ export default function TeacherHomeDashboard({ setView }) {
           <>
             {/* Welcome Header */}
             <div className="bg-white border border-slate-100 rounded-2xl p-8 sm:p-10 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 text-left relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-[30%] h-full bg-[radial-gradient(ellipse_at_top_right,rgba(59,130,246,0.06),rgba(255,255,255,0))] -z-10" />
+              <div className="absolute top-0 right-0 w-[30%] h-full bg-[radial-gradient(ellipse_at_top_right,rgba(254,199,0,0.06),rgba(2,70,46,0))] -z-10" />
               
               <div className="space-y-2">
                 <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">

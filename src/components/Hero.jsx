@@ -30,7 +30,7 @@ export default function Hero({ setView }) {
   return (
     <section id="hero-section" className="relative bg-white lg:min-h-[calc(100vh-80px)] lg:flex lg:items-center pt-24 pb-16 md:pt-32 md:pb-20 overflow-hidden">
       {/* Background radial glow */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(79,70,229,0.04),rgba(255,255,255,0))]" />
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(254,199,0,0.06),rgba(2,70,46,0))]" />
 
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">

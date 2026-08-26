@@ -87,7 +87,7 @@ export default function BloomTaxonomy() {
 
           {/* Question Preview Box (6 columns) */}
           <div className="lg:col-span-6 bg-gray-50 border border-gray-100 rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(79,70,229,0.03),transparent)] -z-10" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(254,199,0,0.04),transparent)] -z-10" />
 
             <div>
               <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider inline-block mb-6">
